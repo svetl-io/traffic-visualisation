@@ -1,0 +1,8 @@
+#map {
+    height: 400px;
+}
+.traffic-light-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+}

@@ -1,128 +1,19 @@
 <!doctype html>
 <html>
-    <head>
-        <title>Traffic Light Simulation</title>
-        <link
-            rel="stylesheet"
-            href="https://unpkg.com/leaflet/dist/leaflet.css"
-        />
-        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-        <style>
-            #map {
-                height: 400px;
-            }
-            .traffic-light-icon {
-                background-color: red;
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-            }
-        </style>
-    </head>
-    <body>
-        <div id="map"></div>
 
-        <script>
-            var map = L.map("map").setView([42.6742407, 23.3765016], 16);
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution:
-                    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            }).addTo(map);
+<head>
+    <title>Traffic Light Simulation</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css" />
+    
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js" defer></script>
+    <script defer src="js/map.js"></script>
+    <script defer src="js/trafficLights.js"></script>
+    <script defer src="js/utils.js"></script>
+</head>
 
-            var markersLayer = L.layerGroup().addTo(map);
+<body>
+    <div id="map"></div>
+</body>
 
-            var greenIcon = L.divIcon({
-                className: "traffic-light-icon",
-                html: '<div style="background-color: green; width: 20px; height: 20px; border-radius: 50%;"></div>',
-            });
-
-            var yellowIcon = L.divIcon({
-                className: "traffic-light-icon",
-                html: '<div style="background-color: yellow; width: 20px; height: 20px; border-radius: 50%;"></div>',
-            });
-
-            var redIcon = L.divIcon({
-                className: "traffic-light-icon",
-                html: '<div style="background-color: red; width: 20px; height: 20px; border-radius: 50%;"></div>',
-            });
-
-            // Function to query traffic light data from Overpass API
-            function queryTrafficLights(mapBounds) {
-                var overpassUrl = "https://overpass-api.de/api/interpreter";
-
-                // Manually construct the bbox string with correct order of coordinates
-                var bboxString = `${mapBounds.getSouth()},${mapBounds.getWest()},${mapBounds.getNorth()},${mapBounds.getEast()}`;
-
-                // Construct the Overpass query dynamically based on the map bounds
-                var query = `[out:json];
-                  (
-                    node["highway"="traffic_signals"](${bboxString});
-                  );
-                  out;`;
-
-                var encodedQuery = encodeURIComponent(query);
-
-                fetch(overpassUrl, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
-                    },
-                    body: "data=" + encodedQuery,
-                })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        // Clear existing markers before adding new ones
-                        markersLayer.clearLayers();
-
-                        // Process the Overpass API response
-                        console.log(data); // Output data to console for verification
-                        data.elements.forEach(function (element) {
-                            var lat, lon;
-                            if (element.type === "node") {
-                                lat = element.lat;
-                                lon = element.lon;
-                            } else if (g
-                                element.type === "way" ||
-                                element.type === "relation"
-                            ) {
-                                lat = element.center.lat;
-                                lon = element.center.lon;
-                            }
-
-                            var stateIndex = 0; // Index to track current state
-                            var states = ["red", "green", "yellow"]; // Define states
-                            setInterval(function () {
-                                var icon;
-                                switch (states[stateIndex]) {
-                                    case "green":
-                                        icon = greenIcon;
-                                        break;
-                                    case "yellow":
-                                        icon = yellowIcon;
-                                        break;
-                                    case "red":
-                                        icon = redIcon;
-                                        break;
-                                }
-
-                                L.marker([lat, lon], { icon: icon }).addTo(
-                                    markersLayer,
-                                );
-
-                                // Increment state index and loop back to 0 if it reaches the end
-                                stateIndex = (stateIndex + 1) % states.length;
-                            }, 3000); // Repeat every 3 seconds
-                        });
-                    })
-                    .catch((error) => console.error("Error:", error));
-            }
-
-            // Assuming 'map' is your Leaflet map object
-            map.on("moveend", function () {
-                // Query traffic light data whenever the map view changes
-                var mapBounds = map.getBounds();
-                queryTrafficLights(mapBounds);
-            });
-        </script>
-    </body>
 </html>
