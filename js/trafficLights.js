@@ -18,14 +18,12 @@ var trafficLights = (function () {
     module.init = function (map) {
         var markersLayer = L.layerGroup().addTo(map);
 
-        map.on("moveend", function () {
-            queryTrafficLights(map.getBounds(), markersLayer);
-        });
+        queryTrafficLights(markersLayer);
     };
 
-    function queryTrafficLights(mapBounds, markersLayer) {
+    function queryTrafficLights(markersLayer) {
         var overpassUrl = "https://overpass-api.de/api/interpreter";
-        var bboxString = `${mapBounds.getSouth()},${mapBounds.getWest()},${mapBounds.getNorth()},${mapBounds.getEast()}`;
+        var bboxString = bbox.join(',');
         var query = `[out:json];(node["highway"="traffic_signals"](${bboxString}););out;`;
         var encodedQuery = encodeURIComponent(query);
 
@@ -34,19 +32,19 @@ var trafficLights = (function () {
             headers: { "Content-Type": "application/x-www-form-urlencoded", },
             body: "data=" + encodedQuery,
         })
-        .then(response => response.json())
-        .then(data => {
-            markersLayer.clearLayers();
-            data.elements.forEach(element => {
-                var marker = L.marker([element.lat, element.lon], { icon: icons.red }).addTo(markersLayer);
-                trafficLightMarkers[element.id] = marker; // Store marker by OSM ID
-            });
-        })
-        .catch(error => console.error("Error:", error));
+            .then(response => response.json())
+            .then(data => {
+                markersLayer.clearLayers();
+                data.elements.forEach(element => {
+                    var marker = L.marker([element.lat, element.lon], { icon: icons.red }).addTo(markersLayer);
+                    trafficLightMarkers[element.id] = marker; // Store marker by OSM ID
+                });
+            })
+            .catch(error => console.error("Error:", error));
     }
 
     // todo: Function to update traffic light colors based on backend data
-    module.updateTrafficLights = function(trafficLightsData) {
+    module.updateTrafficLights = function (trafficLightsData) {
         trafficLightsData.forEach(light => {
             var marker = trafficLightMarkers[light.id];
             if (marker) {

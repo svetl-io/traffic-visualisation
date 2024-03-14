@@ -1,6 +1,12 @@
-#map {
-    height: 400px;
+html, body {
+    height: 100%;
 }
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
 .traffic-light-icon {
     width: 20px;
     height: 20px;
