@@ -53,7 +53,7 @@ socket.onmessage = (event) => {
   var trafficLightsArrayData = JSON.parse(event.data);
 
   console.log("Message from the server:", trafficLightsArrayData);
-  trafficLightsArray.updatetrafficLightsArray(trafficLightsArrayData);
+  trafficLights.updateTrafficLights(trafficLightsArrayData);
 };
 
 socket.onclose = (event) => {
